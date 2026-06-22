@@ -28,34 +28,47 @@ class WordData {
   }) : imageName = imageName ?? english;
 }
 
+// Fitzgerald Key palette
+const _fkGreen  = Color(0xFF4CAF50); // verbs
+const _fkYellow = Color(0xFFFFD600); // pronouns
+const _fkOrange = Color(0xFFFF9800); // nouns / people / places
+const _fkBlue   = Color(0xFF2196F3); // descriptive
+const _fkRed    = Color(0xFFF44336); // negatives / quantity
+const _fkPink   = Color(0xFFE91E63); // social
+
+// Fixed grid positions (4 cols × 6 rows = 24 slots).
+// Level 1 words are intentionally scattered across rows 0–4.
 const List<WordData> kWords = [
-  // Level 1 — positions 0-7
-  WordData(english: 'want',     amharic: 'ፈልጋለሁ',  level: 1, color: Color(0xFF4CAF50), icon: Icons.favorite),
-  WordData(english: 'no',       amharic: 'አይ',       level: 1, color: Color(0xFFF44336), icon: Icons.cancel),
-  WordData(english: 'yes',      amharic: 'አዎ',       level: 1, color: Color(0xFF2196F3), icon: Icons.check_circle),
-  WordData(english: 'help',     amharic: 'እርዳታ',    level: 1, color: Color(0xFFFF9800), icon: Icons.pan_tool),
-  WordData(english: 'eat',      amharic: 'ምግብ',     level: 1, color: Color(0xFF9C27B0), icon: Icons.restaurant),
-  WordData(english: 'drink',    amharic: 'ጠጣ',      level: 1, color: Color(0xFF00BCD4), icon: Icons.local_cafe),
-  WordData(english: 'more',     amharic: 'ተጨማሪ',   level: 1, color: Color(0xFFFF5722), icon: Icons.add_circle),
-  WordData(english: 'stop',     amharic: 'ቁም',      level: 1, color: Color(0xFF795548), icon: Icons.stop_circle),
-  // Level 2 — positions 8-15
-  WordData(english: 'I',        amharic: 'እኔ',       level: 2, color: Color(0xFF607D8B), icon: Icons.person),
-  WordData(english: 'you',      amharic: 'አንተ',      level: 2, color: Color(0xFF8BC34A), icon: Icons.person_outline),
-  WordData(english: 'go',       amharic: 'ሂድ',       level: 2, color: Color(0xFFE91E63), icon: Icons.directions_walk),
-  WordData(english: 'finished', amharic: 'ጨርሻለሁ',   level: 2, color: Color(0xFF3F51B5), icon: Icons.done_all, imageName: 'I have finished'),
-  WordData(english: 'water',    amharic: 'ውሃ',       level: 2, color: Color(0xFF009688), icon: Icons.water_drop),
-  WordData(english: 'happy',    amharic: 'ደስተኛ',    level: 2, color: Color(0xFFFFC107), icon: Icons.sentiment_very_satisfied),
-  WordData(english: 'sad',      amharic: 'ሐዘን',     level: 2, color: Color(0xFF9E9E9E), icon: Icons.sentiment_very_dissatisfied),
-  WordData(english: 'toilet',   amharic: 'መጸዳጃ',   level: 2, color: Color(0xFF6D4C41), icon: Icons.wc),
-  // Level 3 — positions 16-23
-  WordData(english: 'play',     amharic: 'ጫወት',     level: 3, color: Color(0xFF43A047), icon: Icons.sports_esports),
-  WordData(english: 'sleep',    amharic: 'ተኛ',      level: 3, color: Color(0xFF673AB7), icon: Icons.bedtime),
-  WordData(english: 'pain',     amharic: 'ህመም',     level: 3, color: Color(0xFFE53935), icon: Icons.healing),
-  WordData(english: 'mom',      amharic: 'እናቴ',     level: 3, color: Color(0xFFE91E63), icon: Icons.woman),
-  WordData(english: 'dad',      amharic: 'አባቴ',     level: 3, color: Color(0xFF1976D2), icon: Icons.man),
-  WordData(english: 'teacher',  amharic: 'አስተማሪ',   level: 3, color: Color(0xFF00897B), icon: Icons.school),
-  WordData(english: 'hot',      amharic: 'ሞቃት',     level: 3, color: Color(0xFFFF5722), icon: Icons.wb_sunny),
-  WordData(english: 'cold',     amharic: 'ቀዝቃዛ',   level: 3, color: Color(0xFF0288D1), icon: Icons.ac_unit),
+  // ── Row 0 ──────────────────────────────────────────────────────────────
+  WordData(english: 'want',     amharic: 'ፈልጋለሁ',  level: 1, color: _fkGreen,  icon: Icons.favorite),
+  WordData(english: 'I',        amharic: 'እኔ',       level: 2, color: _fkYellow, icon: Icons.person),
+  WordData(english: 'play',     amharic: 'ጫወት',     level: 3, color: _fkGreen,  icon: Icons.sports_esports),
+  WordData(english: 'no',       amharic: 'አይ',       level: 1, color: _fkRed,    icon: Icons.cancel),
+  // ── Row 1 ──────────────────────────────────────────────────────────────
+  WordData(english: 'help',     amharic: 'እርዳታ',    level: 1, color: _fkGreen,  icon: Icons.pan_tool),
+  WordData(english: 'you',      amharic: 'አንተ',      level: 2, color: _fkYellow, icon: Icons.person_outline),
+  WordData(english: 'sleep',    amharic: 'ተኛ',      level: 3, color: _fkGreen,  icon: Icons.bedtime),
+  WordData(english: 'yes',      amharic: 'አዎ',       level: 1, color: _fkPink,   icon: Icons.check_circle),
+  // ── Row 2 ──────────────────────────────────────────────────────────────
+  WordData(english: 'eat',      amharic: 'ምግብ',     level: 1, color: _fkGreen,  icon: Icons.restaurant),
+  WordData(english: 'go',       amharic: 'ሂድ',       level: 2, color: _fkGreen,  icon: Icons.directions_walk),
+  WordData(english: 'pain',     amharic: 'ህመም',     level: 3, color: _fkBlue,   icon: Icons.healing),
+  WordData(english: 'drink',    amharic: 'ጠጣ',      level: 1, color: _fkGreen,  icon: Icons.local_cafe),
+  // ── Row 3 ──────────────────────────────────────────────────────────────
+  WordData(english: 'finished', amharic: 'ጨርሻለሁ',   level: 2, color: _fkGreen,  icon: Icons.done_all, imageName: 'I have finished'),
+  WordData(english: 'more',     amharic: 'ተጨማሪ',   level: 1, color: _fkRed,    icon: Icons.add_circle),
+  WordData(english: 'mom',      amharic: 'እናቴ',     level: 3, color: _fkOrange, icon: Icons.woman),
+  WordData(english: 'water',    amharic: 'ውሃ',       level: 2, color: _fkOrange, icon: Icons.water_drop),
+  // ── Row 4 ──────────────────────────────────────────────────────────────
+  WordData(english: 'stop',     amharic: 'ቁም',      level: 1, color: _fkGreen,  icon: Icons.stop_circle),
+  WordData(english: 'happy',    amharic: 'ደስተኛ',    level: 2, color: _fkBlue,   icon: Icons.sentiment_very_satisfied),
+  WordData(english: 'dad',      amharic: 'አባቴ',     level: 3, color: _fkOrange, icon: Icons.man),
+  WordData(english: 'toilet',   amharic: 'መጸዳጃ',   level: 2, color: _fkOrange, icon: Icons.wc),
+  // ── Row 5 ──────────────────────────────────────────────────────────────
+  WordData(english: 'sad',      amharic: 'ሐዘን',     level: 2, color: _fkBlue,   icon: Icons.sentiment_very_dissatisfied),
+  WordData(english: 'hot',      amharic: 'ሞቃት',     level: 3, color: _fkBlue,   icon: Icons.wb_sunny),
+  WordData(english: 'teacher',  amharic: 'አስተማሪ',   level: 3, color: _fkOrange, icon: Icons.school),
+  WordData(english: 'cold',     amharic: 'ቀዝቃዛ',   level: 3, color: _fkBlue,   icon: Icons.ac_unit),
 ];
 
 // ── App root ─────────────────────────────────────────────────────────────────
@@ -440,21 +453,21 @@ class _AACButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = isAmharic ? word.amharic : word.english;
+    // Pick text colour that contrasts against the Fitzgerald Key background.
+    final textColor = enabled
+        ? (word.color.computeLuminance() > 0.4 ? Colors.black87 : Colors.white)
+        : Colors.grey.shade400;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 80),
         decoration: BoxDecoration(
-          color: enabled ? Colors.white : const Color(0xFFEEEEEE),
+          color: enabled ? word.color : const Color(0xFFEEEEEE),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: enabled ? word.color : Colors.grey.shade300,
-            width: 2,
-          ),
           boxShadow: enabled
               ? [
                   BoxShadow(
-                    color: word.color.withValues(alpha: 0.25),
+                    color: Colors.black.withValues(alpha: 0.22),
                     blurRadius: 4,
                     offset: const Offset(1, 2),
                   ),
@@ -463,7 +476,7 @@ class _AACButton extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Image area
+            // Image sits on top of the category-colour background.
             Expanded(
               flex: 3,
               child: Padding(
@@ -476,7 +489,7 @@ class _AACButton extends StatelessWidget {
                     errorBuilder: (ctx, err, stack) => Icon(
                       word.icon,
                       size: 34,
-                      color: enabled ? word.color : Colors.grey.shade300,
+                      color: enabled ? Colors.white : Colors.grey.shade300,
                     ),
                   ),
                 ),
@@ -496,7 +509,7 @@ class _AACButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: enabled ? Colors.black87 : Colors.grey.shade400,
+                      color: textColor,
                     ),
                   ),
                 ),
