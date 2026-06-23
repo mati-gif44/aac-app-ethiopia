@@ -244,18 +244,22 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Settings / PIN ───────────────────────────────────────────────────────
 
   Future<void> _openSettings() async {
-    if (_settings.pin == null) {
-      // First time: create a PIN before entering settings.
-      final newPin = await _showCreatePinDialog();
-      if (newPin == null || !mounted) return;
-      final updated = _settings.copyWith(pin: newPin);
-      setState(() => _settings = updated);
-      await _saveSettings(updated);
+    if (_settings.pin != null) {
+      // PIN exists — verify it.
+      // Returns true=unlocked, false=cancelled, null=forgot PIN.
+      final unlockResult = await _showPinDialog();
       if (!mounted) return;
+      if (unlockResult == false) return; // user cancelled
+      if (unlockResult == null) {
+        // Forgot PIN → reset with a new one before entering settings.
+        if (!await _createNewPin()) return;
+      }
+      // unlockResult == true: fall through to settings screen
     } else {
-      final unlocked = await _showPinDialog();
-      if (!unlocked || !mounted) return;
+      // No PIN set yet — create one before entering settings.
+      if (!await _createNewPin()) return;
     }
+    if (!mounted) return;
     final result = await Navigator.push<AppSettings>(
       context,
       MaterialPageRoute(builder: (_) => SettingsScreen(initial: _settings)),
@@ -266,137 +270,35 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Shown when no PIN exists yet.
-  Future<String?> _showCreatePinDialog() async {
-    final c1 = TextEditingController();
-    final c2 = TextEditingController();
-    String? error;
-    final newPin = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Create caregiver PIN'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Set a 4-digit PIN to protect settings.',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: c1,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'New PIN (4 digits)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: c2,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                decoration: InputDecoration(
-                  labelText: 'Confirm PIN',
-                  errorText: error,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (c1.text.length < 4) {
-                  setS(() => error = 'PIN must be 4 digits');
-                } else if (c1.text != c2.text) {
-                  setS(() => error = 'PINs do not match');
-                } else {
-                  Navigator.pop(ctx, c1.text);
-                }
-              },
-              child: const Text('Create PIN'),
-            ),
-          ],
-        ),
-      ),
-    );
-    c1.dispose();
-    c2.dispose();
-    return newPin;
+  /// Creates a new PIN, saves it, updates state. Returns false if the user
+  /// cancelled without setting one.
+  Future<bool> _createNewPin() async {
+    final newPin = await _showCreatePinDialog();
+    if (newPin == null || !mounted) return false;
+    final updated = _settings.copyWith(pin: newPin);
+    setState(() => _settings = updated);
+    await _saveSettings(updated);
+    return mounted;
   }
 
-  // Shown on subsequent taps when a PIN is already set.
-  Future<bool> _showPinDialog() async {
-    final controller = TextEditingController();
-    bool hasError = false;
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Caregiver PIN'),
-          content: TextField(
-            controller: controller,
-            obscureText: true,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(4),
-            ],
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: 'Enter PIN',
-              errorText: hasError ? 'Incorrect PIN' : null,
-            ),
-            onSubmitted: (_) {
-              if (controller.text == _settings.pin) {
-                Navigator.pop(ctx, true);
-              } else {
-                setS(() {
-                  hasError = true;
-                  controller.clear();
-                });
-              }
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (controller.text == _settings.pin) {
-                  Navigator.pop(ctx, true);
-                } else {
-                  setS(() {
-                    hasError = true;
-                    controller.clear();
-                  });
-                }
-              },
-              child: const Text('Unlock'),
-            ),
-          ],
+  // Shown when no PIN exists yet.
+  Future<String?> _showCreatePinDialog() => showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const _SetPinDialog(
+          title: 'Create caregiver PIN',
+          subtitle: 'Set a 4-digit PIN to protect settings.',
+          confirmLabel: 'Create PIN',
         ),
-      ),
-    );
-    controller.dispose();
-    return result ?? false;
-  }
+      );
+
+  // Shown on subsequent taps when a PIN is already set.
+  // Returns true=unlocked, false=cancelled, null=forgot PIN.
+  Future<bool?> _showPinDialog() => showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _PinEntryDialog(correctPin: _settings.pin!),
+      );
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
@@ -608,74 +510,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _changePin() async {
-    final c1 = TextEditingController();
-    final c2 = TextEditingController();
-    String? error;
-
     final newPin = await showDialog<String>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Change PIN'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: c1,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'New PIN (4 digits)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: c2,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                decoration: InputDecoration(
-                  labelText: 'Confirm PIN',
-                  errorText: error,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (c1.text.length < 4) {
-                  setS(() => error = 'PIN must be 4 digits');
-                } else if (c1.text != c2.text) {
-                  setS(() => error = 'PINs do not match');
-                } else {
-                  Navigator.pop(ctx, c1.text);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+      builder: (_) => const _SetPinDialog(
+        title: 'Change PIN',
+        confirmLabel: 'Save',
       ),
     );
-
-    c1.dispose();
-    c2.dispose();
     if (newPin != null && mounted) {
       setState(() => _s = _s.copyWith(pin: newPin));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PIN updated')),
-      );
+      // Save the PIN immediately so it persists even if the user
+      // navigates back without tapping Save on the settings screen.
+      await _saveSettings(_s);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PIN updated')),
+        );
+      }
     }
   }
 
@@ -815,6 +666,180 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ],
       ),
+    );
+  }
+}
+
+// ── PIN dialog widgets ────────────────────────────────────────────────────────
+//
+// Using proper StatefulWidgets (not StatefulBuilder) avoids a Flutter assertion
+// ("dependents is not empty") that fires when Navigator.pop is called from a
+// context that is not part of the dialog's own widget subtree.  Inside a
+// StatefulWidget, Navigator.of(context).pop() runs from within the tree and
+// Flutter unwinds InheritedWidget dependencies in the correct order.
+
+class _PinEntryDialog extends StatefulWidget {
+  final String correctPin;
+  const _PinEntryDialog({required this.correctPin});
+
+  @override
+  State<_PinEntryDialog> createState() => _PinEntryDialogState();
+}
+
+class _PinEntryDialogState extends State<_PinEntryDialog> {
+  final _ctrl = TextEditingController();
+  bool _hasError = false;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_ctrl.text == widget.correctPin) {
+      Navigator.of(context).pop(true);
+    } else {
+      setState(() {
+        _hasError = true;
+        _ctrl.clear();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Caregiver PIN'),
+      content: TextField(
+        controller: _ctrl,
+        obscureText: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(4),
+        ],
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: 'Enter PIN',
+          errorText: _hasError ? 'Incorrect PIN' : null,
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        // Leftmost — visually separated from Cancel/Unlock
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(), // null = forgot
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.grey.shade600,
+          ),
+          child: const Text('Forgot PIN?'),
+        ),
+        const Spacer(),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Unlock'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Used for both "Create PIN" (first launch) and "Change PIN" (settings).
+class _SetPinDialog extends StatefulWidget {
+  final String title;
+  final String? subtitle;
+  final String confirmLabel;
+
+  const _SetPinDialog({
+    required this.title,
+    this.subtitle,
+    required this.confirmLabel,
+  });
+
+  @override
+  State<_SetPinDialog> createState() => _SetPinDialogState();
+}
+
+class _SetPinDialogState extends State<_SetPinDialog> {
+  final _c1 = TextEditingController();
+  final _c2 = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _c1.dispose();
+    _c2.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_c1.text.length < 4) {
+      setState(() => _error = 'PIN must be 4 digits');
+    } else if (_c1.text != _c2.text) {
+      setState(() => _error = 'PINs do not match');
+    } else {
+      Navigator.of(context).pop(_c1.text);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.subtitle != null) ...[
+            Text(
+              widget.subtitle!,
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            const SizedBox(height: 16),
+          ],
+          TextField(
+            controller: _c1,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'New PIN (4 digits)'),
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _c2,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            decoration: InputDecoration(
+              labelText: 'Confirm PIN',
+              errorText: _error,
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(widget.confirmLabel),
+        ),
+      ],
     );
   }
 }
@@ -1012,6 +1037,10 @@ class _AACButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: enabled ? word.color : const Color(0xFFEEEEEE),
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.black.withValues(alpha: enabled ? 0.30 : 0.12),
+            width: 1.2,
+          ),
           boxShadow: enabled
               ? [
                   BoxShadow(
