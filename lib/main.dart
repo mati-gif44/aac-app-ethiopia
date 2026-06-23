@@ -1,14 +1,62 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const AACApp());
 }
 
-// ── Word data ────────────────────────────────────────────────────────────────
+// ── Settings model ────────────────────────────────────────────────────────────
+
+enum GridMode { wide, compact } // 4×6 (24 words) | 3×4 (12 words, larger buttons)
+
+class AppSettings {
+  final GridMode gridMode;
+  final double spacing; // gap between buttons in dp
+  final String? pin; // null = never set; non-null = PIN active
+
+  const AppSettings({
+    this.gridMode = GridMode.wide,
+    this.spacing = 6.0,
+    this.pin, // null by default
+  });
+
+  AppSettings copyWith({GridMode? gridMode, double? spacing, String? pin}) =>
+      AppSettings(
+        gridMode: gridMode ?? this.gridMode,
+        spacing: spacing ?? this.spacing,
+        pin: pin ?? this.pin,
+      );
+}
+
+Future<AppSettings> _loadSettings() async {
+  final prefs = await SharedPreferences.getInstance();
+  return AppSettings(
+    gridMode: prefs.getString('grid_mode') == 'compact'
+        ? GridMode.compact
+        : GridMode.wide,
+    spacing: prefs.getDouble('spacing') ?? 6.0,
+    pin: prefs.getString('pin'), // null when never saved
+  );
+}
+
+Future<void> _saveSettings(AppSettings s) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(
+      'grid_mode', s.gridMode == GridMode.compact ? 'compact' : 'wide');
+  await prefs.setDouble('spacing', s.spacing);
+  if (s.pin != null) {
+    await prefs.setString('pin', s.pin!);
+  } else {
+    await prefs.remove('pin');
+  }
+}
+
+// ── Word data ─────────────────────────────────────────────────────────────────
 
 class WordData {
   final String english;
@@ -16,7 +64,7 @@ class WordData {
   final int level;
   final Color color;
   final IconData icon;
-  final String imageName; // filename (no extension) — defaults to english key
+  final String imageName;
 
   const WordData({
     required this.english,
@@ -102,9 +150,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _level = 1;
   bool _isAmharic = false;
-  final List<String> _sentence = []; // stores english word keys
+  final List<String> _sentence = [];
   late final FlutterTts _tts;
   late final AudioPlayer _audioPlayer;
+  AppSettings _settings = const AppSettings();
 
   @override
   void initState() {
@@ -112,12 +161,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _tts = FlutterTts();
     _audioPlayer = AudioPlayer();
     _initTts();
+    _loadAndApplySettings();
   }
 
   Future<void> _initTts() async {
     await _tts.setLanguage('en-US');
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
+  }
+
+  Future<void> _loadAndApplySettings() async {
+    final s = await _loadSettings();
+    if (mounted) setState(() => _settings = s);
   }
 
   @override
@@ -127,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // ── Speech ────────────────────────────────────────────────────────────────
+  // ── Speech ──────────────────────────────────────────────────────────────
 
   void _onWordTapped(WordData word) {
     setState(() => _sentence.add(word.english));
@@ -173,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ── Sentence bar actions ──────────────────────────────────────────────────
+  // ── Sentence bar actions ─────────────────────────────────────────────────
 
   void _backspace() {
     if (_sentence.isNotEmpty) setState(() => _sentence.removeLast());
@@ -184,6 +239,163 @@ class _HomeScreenState extends State<HomeScreen> {
   String _labelFor(String key) {
     final word = kWords.firstWhere((w) => w.english == key);
     return _isAmharic ? word.amharic : word.english;
+  }
+
+  // ── Settings / PIN ───────────────────────────────────────────────────────
+
+  Future<void> _openSettings() async {
+    if (_settings.pin == null) {
+      // First time: create a PIN before entering settings.
+      final newPin = await _showCreatePinDialog();
+      if (newPin == null || !mounted) return;
+      final updated = _settings.copyWith(pin: newPin);
+      setState(() => _settings = updated);
+      await _saveSettings(updated);
+      if (!mounted) return;
+    } else {
+      final unlocked = await _showPinDialog();
+      if (!unlocked || !mounted) return;
+    }
+    final result = await Navigator.push<AppSettings>(
+      context,
+      MaterialPageRoute(builder: (_) => SettingsScreen(initial: _settings)),
+    );
+    if (result != null && mounted) {
+      setState(() => _settings = result);
+      await _saveSettings(result);
+    }
+  }
+
+  // Shown when no PIN exists yet.
+  Future<String?> _showCreatePinDialog() async {
+    final c1 = TextEditingController();
+    final c2 = TextEditingController();
+    String? error;
+    final newPin = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Create caregiver PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Set a 4-digit PIN to protect settings.',
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: c1,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'New PIN (4 digits)'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: c2,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                decoration: InputDecoration(
+                  labelText: 'Confirm PIN',
+                  errorText: error,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (c1.text.length < 4) {
+                  setS(() => error = 'PIN must be 4 digits');
+                } else if (c1.text != c2.text) {
+                  setS(() => error = 'PINs do not match');
+                } else {
+                  Navigator.pop(ctx, c1.text);
+                }
+              },
+              child: const Text('Create PIN'),
+            ),
+          ],
+        ),
+      ),
+    );
+    c1.dispose();
+    c2.dispose();
+    return newPin;
+  }
+
+  // Shown on subsequent taps when a PIN is already set.
+  Future<bool> _showPinDialog() async {
+    final controller = TextEditingController();
+    bool hasError = false;
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Caregiver PIN'),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Enter PIN',
+              errorText: hasError ? 'Incorrect PIN' : null,
+            ),
+            onSubmitted: (_) {
+              if (controller.text == _settings.pin) {
+                Navigator.pop(ctx, true);
+              } else {
+                setS(() {
+                  hasError = true;
+                  controller.clear();
+                });
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (controller.text == _settings.pin) {
+                  Navigator.pop(ctx, true);
+                } else {
+                  setS(() {
+                    hasError = true;
+                    controller.clear();
+                  });
+                }
+              },
+              child: const Text('Unlock'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+    return result ?? false;
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -220,14 +432,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          // Language toggle
           _TopBarButton(
             label: _isAmharic ? 'EN' : 'አማ',
             active: false,
             onTap: () => setState(() => _isAmharic = !_isAmharic),
           ),
-          const SizedBox(width: 12),
-          // Level selector
+          const SizedBox(width: 8),
           Row(
             children: [1, 2, 3]
                 .map(
@@ -241,6 +451,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
                 .toList(),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _openSettings,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Icon(Icons.settings, color: Colors.white, size: 22),
+            ),
           ),
         ],
       ),
@@ -323,25 +541,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGrid() {
+    final isCompact = _settings.gridMode == GridMode.compact;
+    final cols = isCompact ? 3 : 4;
+    final rows = isCompact ? 4 : 6;
+    final count = isCompact ? 12 : kWords.length;
+    final gap = _settings.spacing;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        const cols = 4;
-        const rows = 6;
-        const hGap = 6.0;
-        const vGap = 6.0;
         const pad = 8.0;
-        final cellW = (constraints.maxWidth - (cols - 1) * hGap - pad * 2) / cols;
-        final cellH = (constraints.maxHeight - (rows - 1) * vGap - pad * 2) / rows;
+        final cellW =
+            (constraints.maxWidth - (cols - 1) * gap - pad * 2) / cols;
+        final cellH =
+            (constraints.maxHeight - (rows - 1) * gap - pad * 2) / rows;
         return GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.all(pad),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cols,
-            mainAxisSpacing: vGap,
-            crossAxisSpacing: hGap,
+            mainAxisSpacing: gap,
+            crossAxisSpacing: gap,
             childAspectRatio: cellW / cellH,
           ),
-          itemCount: kWords.length,
+          itemCount: count,
           itemBuilder: (context, index) {
             final word = kWords[index];
             final enabled = word.level <= _level;
@@ -358,7 +580,331 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Reusable widgets ──────────────────────────────────────────────────────────
+// ── Settings screen ───────────────────────────────────────────────────────────
+
+class SettingsScreen extends StatefulWidget {
+  final AppSettings initial;
+  const SettingsScreen({super.key, required this.initial});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late AppSettings _s;
+
+  static const _spacingValues = [4.0, 6.0, 10.0];
+  static const _spacingLabels = ['Compact', 'Normal', 'Spacious'];
+
+  @override
+  void initState() {
+    super.initState();
+    _s = widget.initial;
+  }
+
+  int get _spacingIndex {
+    final i = _spacingValues.indexOf(_s.spacing);
+    return i < 0 ? 1 : i;
+  }
+
+  Future<void> _changePin() async {
+    final c1 = TextEditingController();
+    final c2 = TextEditingController();
+    String? error;
+
+    final newPin = await showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Change PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: c1,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'New PIN (4 digits)'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: c2,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                decoration: InputDecoration(
+                  labelText: 'Confirm PIN',
+                  errorText: error,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (c1.text.length < 4) {
+                  setS(() => error = 'PIN must be 4 digits');
+                } else if (c1.text != c2.text) {
+                  setS(() => error = 'PINs do not match');
+                } else {
+                  Navigator.pop(ctx, c1.text);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    c1.dispose();
+    c2.dispose();
+    if (newPin != null && mounted) {
+      setState(() => _s = _s.copyWith(pin: newPin));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PIN updated')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Caregiver Settings'),
+        backgroundColor: const Color(0xFF1565C0),
+        foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, _s),
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ── Grid size ────────────────────────────────────────────────
+          _SettingsCard(
+            title: 'Grid Size',
+            child: Row(
+              children: [
+                Expanded(
+                  child: _GridModeButton(
+                    label: '4×6',
+                    sublabel: '24 words\n(default)',
+                    selected: _s.gridMode == GridMode.wide,
+                    onTap: () =>
+                        setState(() => _s = _s.copyWith(gridMode: GridMode.wide)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _GridModeButton(
+                    label: '3×4',
+                    sublabel: '12 words\n(larger buttons)',
+                    selected: _s.gridMode == GridMode.compact,
+                    onTap: () =>
+                        setState(() => _s = _s.copyWith(gridMode: GridMode.compact)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Button spacing ───────────────────────────────────────────
+          _SettingsCard(
+            title: 'Button Spacing',
+            child: Column(
+              children: [
+                Slider(
+                  value: _spacingIndex.toDouble(),
+                  min: 0,
+                  max: 2,
+                  divisions: 2,
+                  activeColor: const Color(0xFF1565C0),
+                  onChanged: (v) => setState(
+                    () => _s =
+                        _s.copyWith(spacing: _spacingValues[v.round()]),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: _spacingLabels
+                      .map((l) => Text(l,
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black54)))
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── PIN ──────────────────────────────────────────────────────
+          _SettingsCard(
+            title: 'Caregiver PIN',
+            child: Row(
+              children: [
+                Text(
+                  '• • • •',
+                  style: TextStyle(
+                    fontSize: 22,
+                    letterSpacing: 4,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const Spacer(),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.lock_outline, size: 18),
+                  label: const Text('Change PIN'),
+                  onPressed: _changePin,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF1565C0),
+                    side: const BorderSide(color: Color(0xFF1565C0)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── 3×4 info tip ─────────────────────────────────────────────
+          if (_s.gridMode == GridMode.compact) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      color: Colors.blue.shade700, size: 18),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '3×4 shows the first 12 word positions. '
+                      'Raise the level to unlock more of them.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ── Settings sub-widgets ──────────────────────────────────────────────────────
+
+class _SettingsCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _SettingsCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87)),
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GridModeButton extends StatelessWidget {
+  final String label;
+  final String sublabel;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _GridModeButton({
+    required this.label,
+    required this.sublabel,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF1565C0) : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? const Color(0xFF1565C0) : Colors.grey.shade300,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: selected ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              sublabel,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: selected ? Colors.white70 : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared top-bar / action widgets ──────────────────────────────────────────
 
 class _TopBarButton extends StatelessWidget {
   final String label;
@@ -436,6 +982,8 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
+
+// ── AAC button ────────────────────────────────────────────────────────────────
 
 class _AACButton extends StatelessWidget {
   final WordData word;
