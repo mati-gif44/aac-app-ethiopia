@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() {
   runApp(const AACApp());
@@ -119,6 +120,40 @@ const List<WordData> kWords = [
   WordData(english: 'cold',     amharic: 'ቀዝቃዛ',   level: 3, color: _fkBlue,   icon: Icons.ac_unit),
 ];
 
+class _SovRule {
+  final List<String> pattern;
+  final List<int> indices;
+  const _SovRule(this.pattern, this.indices);
+
+  bool matches(List<String> words) {
+    if (words.length != pattern.length) return false;
+    for (var i = 0; i < pattern.length; i++) {
+      if (pattern[i] != '*' && pattern[i] != words[i]) return false;
+    }
+    return true;
+  }
+
+  List<String> apply(List<String> words) =>
+      [for (final i in indices) words[i]];
+}
+
+const _sovRules = <_SovRule>[
+  _SovRule(['more', '*'], [1, 0]),
+  _SovRule(['I',   'want', '*'], [0, 2, 1]),
+  _SovRule(['you', 'want', '*'], [0, 2, 1]),
+  _SovRule(['I',   'go', '*'], [0, 2, 1]),
+  _SovRule(['you', 'go', '*'], [0, 2, 1]),
+  _SovRule(['I',   'want', '*', 'more'], [0, 2, 3, 1]),
+  _SovRule(['you', 'want', '*', 'more'], [0, 2, 3, 1]),
+];
+
+List<String> amharicSOVOrder(List<String> words) {
+  for (final rule in _sovRules) {
+    if (rule.matches(words)) return rule.apply(words);
+  }
+  return words;
+}
+
 // ── App root ─────────────────────────────────────────────────────────────────
 
 class AACApp extends StatelessWidget {
@@ -154,6 +189,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final FlutterTts _tts;
   late final AudioPlayer _audioPlayer;
   AppSettings _settings = const AppSettings();
+  int _audioGen = 0;
+  final Map<String, Uint8List> _amharicBytes = {};
 
   @override
   void initState() {
@@ -162,6 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _audioPlayer = AudioPlayer();
     _initTts();
     _loadAndApplySettings();
+    _preloadAmharicAudio();
+    WakelockPlus.enable();
   }
 
   Future<void> _initTts() async {
@@ -175,14 +214,32 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => _settings = s);
   }
 
+  Future<void> _preloadAmharicAudio() async {
+    for (final word in kWords) {
+      try {
+        final data = await rootBundle.load('assets/audio/am/${word.english}.mp3');
+        _amharicBytes[word.english] = data.buffer.asUint8List();
+      } catch (_) {}
+    }
+  }
+
+  Source _amharicSource(String key) {
+    final bytes = _amharicBytes[key];
+    return bytes != null ? BytesSource(bytes) : AssetSource('audio/am/$key.mp3');
+  }
+
   @override
   void dispose() {
+    WakelockPlus.disable();
     _tts.stop();
     _audioPlayer.dispose();
     super.dispose();
   }
 
-  // ── Speech ──────────────────────────────────────────────────────────────
+  Future<void> _stopAllAudio() async {
+    _audioGen++;
+    await Future.wait([_tts.stop(), _audioPlayer.stop()]);
+  }
 
   void _onWordTapped(WordData word) {
     setState(() => _sentence.add(word.english));
@@ -190,28 +247,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _speakWord(String key) async {
+    await _stopAllAudio();
     if (_isAmharic) {
       try {
-        await _audioPlayer.stop();
-        await _audioPlayer.play(AssetSource('audio/am/$key.mp3'));
+        await _audioPlayer.play(_amharicSource(key));
       } catch (_) {}
     } else {
-      await _tts.stop();
       await _tts.speak(key);
     }
   }
 
   Future<void> _speakSentence() async {
     if (_sentence.isEmpty) return;
+    await _stopAllAudio();
+    final gen = _audioGen;
     if (_isAmharic) {
-      await _audioPlayer.stop();
-      for (final key in _sentence) {
+      final keys = amharicSOVOrder(List<String>.from(_sentence));
+      for (final key in keys) {
+        if (_audioGen != gen) return;
         final completer = Completer<void>();
         final sub = _audioPlayer.onPlayerComplete.listen((_) {
           if (!completer.isCompleted) completer.complete();
         });
         try {
-          await _audioPlayer.play(AssetSource('audio/am/$key.mp3'));
+          await _audioPlayer.play(_amharicSource(key));
           await completer.future.timeout(
             const Duration(seconds: 6),
             onTimeout: () {},
@@ -223,18 +282,19 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     } else {
-      await _tts.stop();
+      if (_audioGen != gen) return;
       await _tts.speak(_sentence.join(' '));
     }
   }
-
-  // ── Sentence bar actions ─────────────────────────────────────────────────
 
   void _backspace() {
     if (_sentence.isNotEmpty) setState(() => _sentence.removeLast());
   }
 
-  void _clear() => setState(() => _sentence.clear());
+  void _clear() {
+    _stopAllAudio();
+    setState(() => _sentence.clear());
+  }
 
   String _labelFor(String key) {
     final word = kWords.firstWhere((w) => w.english == key);
@@ -337,7 +397,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _TopBarButton(
             label: _isAmharic ? 'EN' : 'አማ',
             active: false,
-            onTap: () => setState(() => _isAmharic = !_isAmharic),
+            onTap: () {
+              _stopAllAudio();
+              setState(() => _isAmharic = !_isAmharic);
+            },
           ),
           const SizedBox(width: 8),
           Row(
@@ -1010,7 +1073,7 @@ class _ActionButton extends StatelessWidget {
 
 // ── AAC button ────────────────────────────────────────────────────────────────
 
-class _AACButton extends StatelessWidget {
+class _AACButton extends StatefulWidget {
   final WordData word;
   final bool isAmharic;
   final bool enabled;
@@ -1024,75 +1087,129 @@ class _AACButton extends StatelessWidget {
   });
 
   @override
+  State<_AACButton> createState() => _AACButtonState();
+}
+
+class _AACButtonState extends State<_AACButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      // Shrink phase: quick
+      duration: const Duration(milliseconds: 80),
+      // Expand phase: slightly slower with an overshoot for the bounce feel
+      reverseDuration: const Duration(milliseconds: 220),
+      vsync: this,
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.91).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOutBack,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    widget.onTap?.call();
+    // Shrink → bounce back regardless of whether tap produced an action,
+    // so disabled buttons never animate.
+    _ctrl.forward().then((_) {
+      if (mounted) _ctrl.reverse();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final label = isAmharic ? word.amharic : word.english;
-    // Pick text colour that contrasts against the Fitzgerald Key background.
-    final textColor = enabled
-        ? (word.color.computeLuminance() > 0.4 ? Colors.black87 : Colors.white)
+    final label = widget.isAmharic ? widget.word.amharic : widget.word.english;
+    final textColor = widget.enabled
+        ? (widget.word.color.computeLuminance() > 0.4
+            ? Colors.black87
+            : Colors.white)
         : Colors.grey.shade400;
+
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        decoration: BoxDecoration(
-          color: enabled ? word.color : const Color(0xFFEEEEEE),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.black.withValues(alpha: enabled ? 0.30 : 0.12),
-            width: 1.2,
-          ),
-          boxShadow: enabled
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.22),
-                    blurRadius: 4,
-                    offset: const Offset(1, 2),
-                  ),
-                ]
-              : null,
+      onTap: widget.enabled ? _handleTap : null,
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (_, child) => Transform.scale(
+          scale: _scale.value,
+          child: child,
         ),
-        child: Column(
-          children: [
-            // Image sits on top of the category-colour background.
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 2),
-                child: Opacity(
-                  opacity: enabled ? 1.0 : 0.25,
-                  child: Image.asset(
-                    'assets/images/${word.imageName}.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (ctx, err, stack) => Icon(
-                      word.icon,
-                      size: 34,
-                      color: enabled ? Colors.white : Colors.grey.shade300,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 80),
+          decoration: BoxDecoration(
+            color: widget.enabled ? widget.word.color : const Color(0xFFEEEEEE),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.black
+                  .withValues(alpha: widget.enabled ? 0.30 : 0.12),
+              width: 1.2,
+            ),
+            boxShadow: widget.enabled
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.22),
+                      blurRadius: 4,
+                      offset: const Offset(1, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 2),
+                  child: Opacity(
+                    opacity: widget.enabled ? 1.0 : 0.25,
+                    child: Image.asset(
+                      'assets/images/${widget.word.imageName}.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (ctx, err, stack) => Icon(
+                        widget.word.icon,
+                        size: 34,
+                        color: widget.enabled
+                            ? Colors.white
+                            : Colors.grey.shade300,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // Text label
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-                child: Center(
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
