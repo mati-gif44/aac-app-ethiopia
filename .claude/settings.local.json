@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "PowerShell(Get-ChildItem *)",
-      "Skill(run)"
+      "Skill(run)",
+      "Bash(flutter analyze *)"
     ]
   }
 }

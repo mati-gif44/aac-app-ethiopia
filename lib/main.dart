@@ -91,32 +91,32 @@ const List<WordData> kWords = [
   // ── Row 0 ──────────────────────────────────────────────────────────────
   WordData(english: 'want',     amharic: 'ፈልጋለሁ',  level: 1, color: _fkGreen,  icon: Icons.favorite),
   WordData(english: 'I',        amharic: 'እኔ',       level: 2, color: _fkYellow, icon: Icons.person),
-  WordData(english: 'play',     amharic: 'ጫወት',     level: 3, color: _fkGreen,  icon: Icons.sports_esports),
+  WordData(english: 'play',     amharic: 'መጫወት',    level: 3, color: _fkGreen,  icon: Icons.sports_esports),
   WordData(english: 'no',       amharic: 'አይ',       level: 1, color: _fkRed,    icon: Icons.cancel),
   // ── Row 1 ──────────────────────────────────────────────────────────────
   WordData(english: 'help',     amharic: 'እርዳታ',    level: 1, color: _fkGreen,  icon: Icons.pan_tool),
   WordData(english: 'you',      amharic: 'አንተ',      level: 2, color: _fkYellow, icon: Icons.person_outline),
-  WordData(english: 'sleep',    amharic: 'ተኛ',      level: 3, color: _fkGreen,  icon: Icons.bedtime),
+  WordData(english: 'sleep',    amharic: 'መተኛት',    level: 3, color: _fkGreen,  icon: Icons.bedtime),
   WordData(english: 'yes',      amharic: 'አዎ',       level: 1, color: _fkPink,   icon: Icons.check_circle),
   // ── Row 2 ──────────────────────────────────────────────────────────────
-  WordData(english: 'eat',      amharic: 'ምግብ',     level: 1, color: _fkGreen,  icon: Icons.restaurant),
+  WordData(english: 'eat',      amharic: 'መብላት',    level: 1, color: _fkGreen,  icon: Icons.restaurant),
   WordData(english: 'go',       amharic: 'ሂድ',       level: 2, color: _fkGreen,  icon: Icons.directions_walk),
   WordData(english: 'pain',     amharic: 'ህመም',     level: 3, color: _fkBlue,   icon: Icons.healing),
-  WordData(english: 'drink',    amharic: 'ጠጣ',      level: 1, color: _fkGreen,  icon: Icons.local_cafe),
+  WordData(english: 'drink',    amharic: 'መጠጣት',    level: 1, color: _fkGreen,  icon: Icons.local_cafe),
   // ── Row 3 ──────────────────────────────────────────────────────────────
   WordData(english: 'finished', amharic: 'ጨርሻለሁ',   level: 2, color: _fkGreen,  icon: Icons.done_all, imageName: 'I have finished'),
-  WordData(english: 'more',     amharic: 'ተጨማሪ',   level: 1, color: _fkRed,    icon: Icons.add_circle),
-  WordData(english: 'mom',      amharic: 'እናቴ',     level: 3, color: _fkOrange, icon: Icons.woman),
+  WordData(english: 'more',     amharic: 'ጨምር',     level: 1, color: _fkRed,    icon: Icons.add_circle),
+  WordData(english: 'mom',      amharic: 'እናት',     level: 3, color: _fkOrange, icon: Icons.woman),
   WordData(english: 'water',    amharic: 'ውሃ',       level: 2, color: _fkOrange, icon: Icons.water_drop),
   // ── Row 4 ──────────────────────────────────────────────────────────────
   WordData(english: 'stop',     amharic: 'ቁም',      level: 1, color: _fkGreen,  icon: Icons.stop_circle),
-  WordData(english: 'happy',    amharic: 'ደስተኛ',    level: 2, color: _fkBlue,   icon: Icons.sentiment_very_satisfied),
-  WordData(english: 'dad',      amharic: 'አባቴ',     level: 3, color: _fkOrange, icon: Icons.man),
-  WordData(english: 'toilet',   amharic: 'መጸዳጃ',   level: 2, color: _fkOrange, icon: Icons.wc),
+  WordData(english: 'happy',    amharic: 'ደስታ',     level: 2, color: _fkBlue,   icon: Icons.sentiment_very_satisfied),
+  WordData(english: 'dad',      amharic: 'አባት',     level: 3, color: _fkOrange, icon: Icons.man),
+  WordData(english: 'toilet',   amharic: 'ሽንት ቤት', level: 2, color: _fkOrange, icon: Icons.wc),
   // ── Row 5 ──────────────────────────────────────────────────────────────
   WordData(english: 'sad',      amharic: 'ሐዘን',     level: 2, color: _fkBlue,   icon: Icons.sentiment_very_dissatisfied),
-  WordData(english: 'hot',      amharic: 'ሞቃት',     level: 3, color: _fkBlue,   icon: Icons.wb_sunny),
-  WordData(english: 'teacher',  amharic: 'አስተማሪ',   level: 3, color: _fkOrange, icon: Icons.school),
+  WordData(english: 'hot',      amharic: 'ትኩስ',     level: 3, color: _fkBlue,   icon: Icons.wb_sunny),
+  WordData(english: 'teacher',  amharic: 'መምህር',    level: 3, color: _fkOrange, icon: Icons.school),
   WordData(english: 'cold',     amharic: 'ቀዝቃዛ',   level: 3, color: _fkBlue,   icon: Icons.ac_unit),
 ];
 
@@ -186,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _level = 1;
   bool _isAmharic = false;
   final List<String> _sentence = [];
+  List<List<String>> _history = [];
   late final FlutterTts _tts;
   late final AudioPlayer _audioPlayer;
   AppSettings _settings = const AppSettings();
@@ -199,6 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _audioPlayer = AudioPlayer();
     _initTts();
     _loadAndApplySettings();
+    _loadHistory();
     _preloadAmharicAudio();
     WakelockPlus.enable();
   }
@@ -212,6 +214,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadAndApplySettings() async {
     final s = await _loadSettings();
     if (mounted) setState(() => _settings = s);
+  }
+
+  Future<void> _loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList('sentence_history');
+    if (raw != null && mounted) {
+      setState(() {
+        _history = raw
+            .map((e) => e.split('\x1F').where((s) => s.isNotEmpty).toList())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      });
+    }
+  }
+
+  Future<void> _saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'sentence_history',
+      _history.map((s) => s.join('\x1F')).toList(),
+    );
+  }
+
+  void _addToHistory(List<String> sentence) {
+    final entry = List<String>.from(sentence);
+    final key = entry.join('\x1F');
+    setState(() {
+      _history.removeWhere((h) => h.join('\x1F') == key);
+      _history.insert(0, entry);
+      if (_history.length > 5) _history = _history.sublist(0, 5);
+    });
+    _saveHistory();
   }
 
   Future<void> _preloadAmharicAudio() async {
@@ -259,6 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _speakSentence() async {
     if (_sentence.isEmpty) return;
+    _addToHistory(_sentence);
     await _stopAllAudio();
     final gen = _audioGen;
     if (_isAmharic) {
@@ -301,22 +336,49 @@ class _HomeScreenState extends State<HomeScreen> {
     return _isAmharic ? word.amharic : word.english;
   }
 
+  // ── History ───────────────────────────────────────────────────────────────
+
+  void _openHistory() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => _HistorySheet(
+        history: _history,
+        isAmharic: _isAmharic,
+        labelFor: _labelFor,
+        onSelect: (sentence) {
+          setState(() {
+            _sentence
+              ..clear()
+              ..addAll(sentence);
+          });
+          Navigator.pop(ctx);
+        },
+      ),
+    );
+  }
+
   // ── Settings / PIN ───────────────────────────────────────────────────────
 
   Future<void> _openSettings() async {
-    if (_settings.pin != null) {
-      // PIN exists — verify it.
-      // Returns true=unlocked, false=cancelled, null=forgot PIN.
-      final unlockResult = await _showPinDialog();
+    final prefs = await SharedPreferences.getInstance();
+    final savedPin = prefs.getString('pin');
+    if (!mounted) return;
+
+    if (savedPin != null) {
+      final unlockResult = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _PinEntryDialog(correctPin: savedPin),
+      );
       if (!mounted) return;
-      if (unlockResult == false) return; // user cancelled
+      if (unlockResult == false) return;
       if (unlockResult == null) {
-        // Forgot PIN → reset with a new one before entering settings.
         if (!await _createNewPin()) return;
       }
-      // unlockResult == true: fall through to settings screen
     } else {
-      // No PIN set yet — create one before entering settings.
       if (!await _createNewPin()) return;
     }
     if (!mounted) return;
@@ -330,35 +392,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Creates a new PIN, saves it, updates state. Returns false if the user
-  /// cancelled without setting one.
   Future<bool> _createNewPin() async {
-    final newPin = await _showCreatePinDialog();
+    final newPin = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _SetPinDialog(
+        title: 'Create caregiver PIN',
+        subtitle: 'Set a 4-digit PIN to protect settings.',
+        confirmLabel: 'Create PIN',
+      ),
+    );
     if (newPin == null || !mounted) return false;
     final updated = _settings.copyWith(pin: newPin);
     setState(() => _settings = updated);
     await _saveSettings(updated);
     return mounted;
   }
-
-  // Shown when no PIN exists yet.
-  Future<String?> _showCreatePinDialog() => showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const _SetPinDialog(
-          title: 'Create caregiver PIN',
-          subtitle: 'Set a 4-digit PIN to protect settings.',
-          confirmLabel: 'Create PIN',
-        ),
-      );
-
-  // Shown on subsequent taps when a PIN is already set.
-  // Returns true=unlocked, false=cancelled, null=forgot PIN.
-  Future<bool?> _showPinDialog() => showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _PinEntryDialog(correctPin: _settings.pin!),
-      );
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
@@ -384,16 +433,8 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF1565C0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text(
-            'AAC Ethiopia',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Spacer(),
           _TopBarButton(
             label: _isAmharic ? 'EN' : 'አማ',
             active: false,
@@ -418,6 +459,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 .toList(),
           ),
           const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _openHistory,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Icon(Icons.history, color: Colors.white, size: 22),
+            ),
+          ),
+          const SizedBox(width: 4),
           GestureDetector(
             onTap: _openSettings,
             child: const Padding(
@@ -1067,6 +1116,77 @@ class _ActionButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── History sheet ─────────────────────────────────────────────────────────────
+
+class _HistorySheet extends StatelessWidget {
+  final List<List<String>> history;
+  final bool isAmharic;
+  final String Function(String) labelFor;
+  final void Function(List<String>) onSelect;
+
+  const _HistorySheet({
+    required this.history,
+    required this.isAmharic,
+    required this.labelFor,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            children: [
+              const Icon(Icons.history, color: Color(0xFF1565C0), size: 22),
+              const SizedBox(width: 8),
+              Text(
+                isAmharic ? 'የቅርብ ጊዜ ዓረፍተ ነገሮች' : 'Recent Sentences',
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        if (history.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                isAmharic ? 'ታሪክ የለም' : 'No history yet',
+                style: const TextStyle(color: Colors.black45, fontSize: 14),
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: history.length,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final display =
+                  history[i].map((k) => labelFor(k)).join('  ');
+              return ListTile(
+                leading:
+                    const Icon(Icons.chat_bubble_outline, color: Color(0xFF1565C0)),
+                title: Text(display,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w500)),
+                onTap: () => onSelect(history[i]),
+              );
+            },
+          ),
+        SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 8),
+      ],
     );
   }
 }
