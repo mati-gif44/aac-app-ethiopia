@@ -3,7 +3,8 @@
     "allow": [
       "PowerShell(Get-ChildItem *)",
       "Skill(run)",
-      "Bash(flutter analyze *)"
+      "Bash(flutter analyze *)",
+      "Bash(flutter pub *)"
     ]
   }
 }
