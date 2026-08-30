@@ -185,6 +185,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _level = 1;
   bool _isAmharic = false;
+  bool _flashSentenceBar = false;
   final List<String> _sentence = [];
   List<List<String>> _history = [];
   late final FlutterTts _tts;
@@ -295,6 +296,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_sentence.isEmpty) return;
     _addToHistory(_sentence);
     await _stopAllAudio();
+    setState(() => _flashSentenceBar = true);
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) setState(() => _flashSentenceBar = false);
+    });
     final gen = _audioGen;
     if (_isAmharic) {
       final keys = amharicSOVOrder(List<String>.from(_sentence));
@@ -326,6 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_sentence.isNotEmpty) setState(() => _sentence.removeLast());
   }
 
+  void _removeWordAt(int index) {
+    setState(() => _sentence.removeAt(index));
+  }
+
   void _clear() {
     _stopAllAudio();
     setState(() => _sentence.clear());
@@ -343,6 +352,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
       ),
       builder: (ctx) => _HistorySheet(
         history: _history,
@@ -496,20 +508,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSentenceBar() {
     final isEmpty = _sentence.isEmpty;
-    final display = isEmpty
-        ? (_isAmharic ? 'ቃላት ይምረጡ...' : 'Tap words to build a sentence...')
-        : _sentence.map(_labelFor).join('   ');
 
     return GestureDetector(
       onTap: _speakSentence,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: double.infinity,
         constraints: const BoxConstraints(minHeight: 60),
         margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFF1565C0), width: 2.5),
+          color: _flashSentenceBar ? const Color(0xFFC8E6C9) : Colors.white,
+          border: Border.all(
+            color: _flashSentenceBar
+                ? const Color(0xFF2E7D32)
+                : const Color(0xFF1565C0),
+            width: 2.5,
+          ),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
@@ -519,32 +534,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                display,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: isEmpty ? Colors.grey.shade400 : Colors.black87,
-                  fontWeight: isEmpty ? FontWeight.normal : FontWeight.w600,
-                ),
+        child: isEmpty
+            ? Text(
+                _isAmharic ? 'ቃላት ይምረጡ...' : 'Tap words to build a sentence...',
+                style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (var i = 0; i < _sentence.length; i++)
+                          _WordChip(
+                            label: _labelFor(_sentence[i]),
+                            onRemove: () => _removeWordAt(i),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.volume_up, color: Color(0xFF1565C0), size: 26),
+                  ),
+                ],
               ),
-            ),
-            if (!isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(left: 8),
-                child: Icon(Icons.volume_up, color: Color(0xFF1565C0), size: 26),
-              ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildActionRow() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
       child: Row(
         children: [
           Expanded(
@@ -796,8 +818,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
-// ── Tutorial ──────────────────────────────────────────────────────────────────
 
 class _TutorialPageData {
   final IconData icon;
@@ -1294,6 +1314,42 @@ class _TopBarButton extends StatelessWidget {
   }
 }
 
+class _WordChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onRemove;
+
+  const _WordChip({required this.label, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onRemove,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1565C0),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.close, color: Colors.white70, size: 15),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1312,7 +1368,7 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(8),
@@ -1320,13 +1376,13 @@ class _ActionButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: 6),
+            Icon(icon, color: Colors.white, size: 14),
+            const SizedBox(width: 4),
             Text(
               label,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 15,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -1384,23 +1440,24 @@ class _HistorySheet extends StatelessWidget {
             ),
           )
         else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: history.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (_, i) {
-              final display =
-                  history[i].map((k) => labelFor(k)).join('  ');
-              return ListTile(
-                leading:
-                    const Icon(Icons.chat_bubble_outline, color: Color(0xFF1565C0)),
-                title: Text(display,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500)),
-                onTap: () => onSelect(history[i]),
-              );
-            },
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: history.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final display =
+                    history[i].map((k) => labelFor(k)).join('  ');
+                return ListTile(
+                  leading: const Icon(Icons.chat_bubble_outline,
+                      color: Color(0xFF1565C0)),
+                  title: Text(display,
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w500)),
+                  onTap: () => onSelect(history[i]),
+                );
+              },
+            ),
           ),
         SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 8),
       ],
