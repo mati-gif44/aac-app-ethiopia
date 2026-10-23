@@ -28,6 +28,7 @@ flutter:
   assets:
     - assets/images/
     - assets/audio/am/
+    - assets/data/
     - assets/icon/
 
 flutter_launcher_icons:
