@@ -227,6 +227,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 24),
+          const Text(
+            'Pictographic symbols: Sergio Palao. Origin: ARASAAC (arasaac.org). '
+            'License: CC BY-NC-SA. Owner: Government of Aragón (Spain).',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11, color: Colors.black54),
+          ),
         ],
       ),
     );

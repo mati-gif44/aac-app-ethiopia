@@ -1,0 +1,781 @@
+{
+  "eye": {
+    "en": "eye",
+    "chosen": 6573,
+    "alternatives": [
+      {
+        "id": 37627,
+        "label": "have an eye test, test the eyes"
+      },
+      {
+        "id": 32879,
+        "label": "eye tracking, eyes tracking"
+      },
+      {
+        "id": 37634,
+        "label": "lacking eye contact"
+      }
+    ],
+    "status": "saved"
+  },
+  "ear": {
+    "en": "ear",
+    "chosen": 2871,
+    "alternatives": [
+      {
+        "id": 7150,
+        "label": "corncob, corncobs"
+      },
+      {
+        "id": 37691,
+        "label": "ear, ears"
+      },
+      {
+        "id": 39498,
+        "label": "ear, ears"
+      }
+    ],
+    "status": "saved"
+  },
+  "nose": {
+    "en": "nose",
+    "chosen": 2887,
+    "alternatives": [
+      {
+        "id": 16821,
+        "label": "rummage in, rummage through"
+      },
+      {
+        "id": 8637,
+        "label": "red nose, red noses"
+      },
+      {
+        "id": 15722,
+        "label": "rummage in, rummage through"
+      }
+    ],
+    "status": "saved"
+  },
+  "mouth": {
+    "en": "mouth",
+    "chosen": 2663,
+    "alternatives": [
+      {
+        "id": 36906,
+        "label": "mouth, mouths"
+      },
+      {
+        "id": 30032,
+        "label": "rinse one's mouth, rinse"
+      },
+      {
+        "id": 8560,
+        "label": "rinse, rinse out"
+      }
+    ],
+    "status": "saved"
+  },
+  "tongue": {
+    "en": "tongue",
+    "chosen": 2944,
+    "alternatives": [
+      {
+        "id": 27719,
+        "label": "explore the throat, examine the throat"
+      },
+      {
+        "id": 39850,
+        "label": "tongue drum, tongue drums"
+      }
+    ],
+    "status": "saved"
+  },
+  "teeth": {
+    "en": "teeth",
+    "chosen": 2737,
+    "alternatives": [
+      {
+        "id": 10267,
+        "label": "tooth, teeth"
+      },
+      {
+        "id": 34959,
+        "label": "dinosaur teeth"
+      },
+      {
+        "id": 27489,
+        "label": "brush teeth, brush the teeth"
+      }
+    ],
+    "status": "saved"
+  },
+  "hand": {
+    "en": "hand",
+    "chosen": 2928,
+    "alternatives": [
+      {
+        "id": 28431,
+        "label": "give, offer"
+      },
+      {
+        "id": 36760,
+        "label": "sanitize, hygienise"
+      },
+      {
+        "id": 38726,
+        "label": "handwash, hand-wash"
+      }
+    ],
+    "status": "saved"
+  },
+  "leg": {
+    "en": "leg",
+    "chosen": 8666,
+    "alternatives": [
+      {
+        "id": 16833,
+        "label": "leg, legs"
+      },
+      {
+        "id": 27953,
+        "label": "leg, legs"
+      },
+      {
+        "id": 37166,
+        "label": "leg, legs"
+      }
+    ],
+    "status": "saved"
+  },
+  "head": {
+    "en": "head",
+    "chosen": 2673,
+    "alternatives": [
+      {
+        "id": 22755,
+        "label": "director, directors"
+      },
+      {
+        "id": 22757,
+        "label": "administrator, administrators"
+      },
+      {
+        "id": 35133,
+        "label": "head, responsibles"
+      }
+    ],
+    "status": "saved"
+  },
+  "stomach": {
+    "en": "stomach",
+    "chosen": 2786,
+    "alternatives": [
+      {
+        "id": 3309,
+        "label": "stomach, stomachs"
+      },
+      {
+        "id": 28766,
+        "label": "stomach ache, stomach aches"
+      },
+      {
+        "id": 28765,
+        "label": "stomach ache, stomach aches"
+      }
+    ],
+    "status": "saved"
+  },
+  "see": {
+    "en": "see",
+    "chosen": 2474,
+    "alternatives": [
+      {
+        "id": 6564,
+        "label": "see, look"
+      },
+      {
+        "id": 28673,
+        "label": "see, look"
+      },
+      {
+        "id": 36259,
+        "label": "I don't see well, blurred"
+      }
+    ],
+    "status": "saved"
+  },
+  "hear": {
+    "en": "hear",
+    "chosen": 2381,
+    "alternatives": [
+      {
+        "id": 6572,
+        "label": "hear, listen"
+      },
+      {
+        "id": 28659,
+        "label": "hear, listen"
+      },
+      {
+        "id": 2746,
+        "label": "listen to music, hear music"
+      }
+    ],
+    "status": "saved"
+  },
+  "smell": {
+    "en": "smell",
+    "chosen": 2486,
+    "alternatives": [
+      {
+        "id": 6574,
+        "label": "smell, sniff"
+      },
+      {
+        "id": 25275,
+        "label": "smell"
+      },
+      {
+        "id": 25274,
+        "label": "smell"
+      }
+    ],
+    "status": "saved"
+  },
+  "taste": {
+    "en": "taste",
+    "chosen": null,
+    "alternatives": [
+      {
+        "id": 37834,
+        "label": "spicy"
+      },
+      {
+        "id": 37833,
+        "label": "acid"
+      },
+      {
+        "id": 37832,
+        "label": "bitter"
+      }
+    ],
+    "status": "no_match"
+  },
+  "touch": {
+    "en": "touch",
+    "chosen": 3293,
+    "alternatives": [
+      {
+        "id": 27630,
+        "label": "tap, taps"
+      },
+      {
+        "id": 27631,
+        "label": "tap, taps"
+      },
+      {
+        "id": 27632,
+        "label": "tap, taps"
+      }
+    ],
+    "status": "saved"
+  },
+  "shirt": {
+    "en": "shirt",
+    "chosen": 2308,
+    "alternatives": [
+      {
+        "id": 13640,
+        "label": "shirt, shirts"
+      },
+      {
+        "id": 34022,
+        "label": "put on t-shirt"
+      },
+      {
+        "id": 38033,
+        "label": "pull shirt collar, pull off shirt collar"
+      }
+    ],
+    "status": "saved"
+  },
+  "pants": {
+    "en": "pants",
+    "chosen": 2565,
+    "alternatives": [
+      {
+        "id": 7193,
+        "label": "trousers, pants"
+      },
+      {
+        "id": 13638,
+        "label": "trousers, short trousers"
+      },
+      {
+        "id": 24222,
+        "label": "trousers, jeans"
+      }
+    ],
+    "status": "saved"
+  },
+  "socks": {
+    "en": "socks",
+    "chosen": 2298,
+    "alternatives": [
+      {
+        "id": 8339,
+        "label": "sock, socks"
+      }
+    ],
+    "status": "saved"
+  },
+  "shoes": {
+    "en": "shoes",
+    "chosen": 2622,
+    "alternatives": [
+      {
+        "id": 2775,
+        "label": "shoes, high-heeled shoes"
+      },
+      {
+        "id": 24801,
+        "label": "shoes, footwear"
+      },
+      {
+        "id": 32922,
+        "label": "shoe, shoes"
+      }
+    ],
+    "status": "saved"
+  },
+  "jacket": {
+    "en": "jacket",
+    "chosen": 2319,
+    "alternatives": [
+      {
+        "id": 3296,
+        "label": "jacket, jackets"
+      },
+      {
+        "id": 4872,
+        "label": "jacket, jackets"
+      },
+      {
+        "id": 23921,
+        "label": "jacket, jackets"
+      }
+    ],
+    "status": "saved"
+  },
+  "hat": {
+    "en": "hat",
+    "chosen": 2572,
+    "alternatives": [
+      {
+        "id": 6216,
+        "label": "hat, hats"
+      },
+      {
+        "id": 36985,
+        "label": "chullo, chullos"
+      },
+      {
+        "id": 38697,
+        "label": "pastry chef hat, pastry chef hats"
+      }
+    ],
+    "status": "saved"
+  },
+  "dress": {
+    "en": "dress",
+    "chosen": 2613,
+    "alternatives": [
+      {
+        "id": 2781,
+        "label": "dress, get dressed"
+      },
+      {
+        "id": 6627,
+        "label": "dress, get dressed"
+      },
+      {
+        "id": 32135,
+        "label": "dress, get dressed"
+      }
+    ],
+    "status": "saved"
+  },
+  "underwear": {
+    "en": "underwear",
+    "chosen": 25680,
+    "alternatives": [
+      {
+        "id": 30152,
+        "label": "woman in underwear, women in underwear"
+      },
+      {
+        "id": 30155,
+        "label": "man in underwear, men in underwear"
+      },
+      {
+        "id": 30154,
+        "label": "man in underwear, men in underwear"
+      }
+    ],
+    "status": "saved"
+  },
+  "injera": {
+    "en": "injera",
+    "chosen": null,
+    "alternatives": [],
+    "status": "no_match"
+  },
+  "shiro": {
+    "en": "shiro",
+    "chosen": null,
+    "alternatives": [],
+    "status": "no_match"
+  },
+  "beef_stew": {
+    "en": "beef stew",
+    "chosen": 5467,
+    "alternatives": [
+      {
+        "id": 5511,
+        "label": "mixed vegetables, vegetable stew"
+      },
+      {
+        "id": 31821,
+        "label": "fabada, fabadas"
+      },
+      {
+        "id": 2342,
+        "label": "cook, stew"
+      }
+    ],
+    "status": "saved"
+  },
+  "rice": {
+    "en": "rice",
+    "chosen": 6911,
+    "alternatives": [
+      {
+        "id": 25556,
+        "label": "rice, rice packet"
+      },
+      {
+        "id": 39387,
+        "label": "white rice, rice"
+      },
+      {
+        "id": 36169,
+        "label": "puffed rice cake, puffed rice cakes"
+      }
+    ],
+    "status": "saved"
+  },
+  "bread": {
+    "en": "bread",
+    "chosen": 2494,
+    "alternatives": [
+      {
+        "id": 10230,
+        "label": "bread, breads"
+      },
+      {
+        "id": 26805,
+        "label": "bread"
+      },
+      {
+        "id": 38732,
+        "label": "bread"
+      }
+    ],
+    "status": "saved"
+  },
+  "fish": {
+    "en": "fish",
+    "chosen": 2519,
+    "alternatives": [
+      {
+        "id": 2520,
+        "label": "fish, fishes"
+      },
+      {
+        "id": 6502,
+        "label": "fish, fishes"
+      },
+      {
+        "id": 6592,
+        "label": "fish"
+      }
+    ],
+    "status": "saved"
+  },
+  "fruit": {
+    "en": "fruit",
+    "chosen": 28339,
+    "alternatives": [
+      {
+        "id": 39824,
+        "label": "guava, guavas"
+      },
+      {
+        "id": 39807,
+        "label": "wild plum, wild plums"
+      },
+      {
+        "id": 39691,
+        "label": "chayote, chayotes"
+      }
+    ],
+    "status": "saved"
+  },
+  "banana": {
+    "en": "banana",
+    "chosen": 2530,
+    "alternatives": [
+      {
+        "id": 9054,
+        "label": "banana, bananas"
+      },
+      {
+        "id": 10218,
+        "label": "banana, bananas"
+      },
+      {
+        "id": 39631,
+        "label": "peel a banana"
+      }
+    ],
+    "status": "saved"
+  },
+  "plate": {
+    "en": "plate",
+    "chosen": 2532,
+    "alternatives": [
+      {
+        "id": 16857,
+        "label": "plate, plates"
+      },
+      {
+        "id": 38012,
+        "label": "vestibular balance, vestibular balances"
+      },
+      {
+        "id": 34088,
+        "label": "small plate, small plates"
+      }
+    ],
+    "status": "saved"
+  },
+  "spoon": {
+    "en": "spoon",
+    "chosen": 2362,
+    "alternatives": [
+      {
+        "id": 8546,
+        "label": "spoon,  spoonful"
+      },
+      {
+        "id": 26549,
+        "label": "adapted spoon, adapted spoons"
+      },
+      {
+        "id": 32468,
+        "label": "wooden spoon, wooden spoons"
+      }
+    ],
+    "status": "saved"
+  },
+  "fork": {
+    "en": "fork",
+    "chosen": 2588,
+    "alternatives": [
+      {
+        "id": 36628,
+        "label": "take the knife and fork, take the knife"
+      },
+      {
+        "id": 34181,
+        "label": "tuning fork, tuning forks"
+      },
+      {
+        "id": 36629,
+        "label": "take the fork"
+      }
+    ],
+    "status": "saved"
+  },
+  "cup": {
+    "en": "cup",
+    "chosen": 2582,
+    "alternatives": [
+      {
+        "id": 3162,
+        "label": "trophy, trophys"
+      },
+      {
+        "id": 9133,
+        "label": "shaker, shakers"
+      },
+      {
+        "id": 21326,
+        "label": "hot chocolate, hot chocolates"
+      }
+    ],
+    "status": "saved"
+  },
+  "hungry": {
+    "en": "hungry",
+    "chosen": 4962,
+    "alternatives": [
+      {
+        "id": 31890,
+        "label": "hungry"
+      },
+      {
+        "id": 35525,
+        "label": "hungry"
+      },
+      {
+        "id": 35579,
+        "label": "hungry"
+      }
+    ],
+    "status": "saved"
+  },
+  "thirsty": {
+    "en": "thirsty",
+    "chosen": 4963,
+    "alternatives": [
+      {
+        "id": 7273,
+        "label": "thirsty, be thirsty"
+      },
+      {
+        "id": 32140,
+        "label": "thirsty"
+      },
+      {
+        "id": 35523,
+        "label": "thirsty"
+      }
+    ],
+    "status": "saved"
+  },
+  "tired": {
+    "en": "tired",
+    "chosen": 2314,
+    "alternatives": [
+      {
+        "id": 28709,
+        "label": "tired, fatigued"
+      },
+      {
+        "id": 31925,
+        "label": "tired, exhausted"
+      },
+      {
+        "id": 35537,
+        "label": "tired, exhausted"
+      }
+    ],
+    "status": "saved"
+  },
+  "angry": {
+    "en": "angry",
+    "chosen": 2374,
+    "alternatives": [
+      {
+        "id": 21820,
+        "label": "angry, annoyed"
+      },
+      {
+        "id": 28671,
+        "label": "angry, irritated"
+      },
+      {
+        "id": 31101,
+        "label": "angry, irritated"
+      }
+    ],
+    "status": "saved"
+  },
+  "scared": {
+    "en": "scared",
+    "chosen": 2261,
+    "alternatives": [
+      {
+        "id": 10208,
+        "label": "frightened, scared"
+      },
+      {
+        "id": 11951,
+        "label": "frightened, scared"
+      },
+      {
+        "id": 26483,
+        "label": "frightened, fearful"
+      }
+    ],
+    "status": "saved"
+  },
+  "swing": {
+    "en": "swing",
+    "chosen": 4608,
+    "alternatives": [
+      {
+        "id": 5430,
+        "label": "push, swing"
+      },
+      {
+        "id": 6455,
+        "label": "push, swing"
+      },
+      {
+        "id": 25000,
+        "label": "swing, swings"
+      }
+    ],
+    "status": "saved"
+  },
+  "ball": {
+    "en": "ball",
+    "chosen": 2269,
+    "alternatives": [
+      {
+        "id": 3241,
+        "label": "ball, balls"
+      },
+      {
+        "id": 27218,
+        "label": "ping-pong ball, ping-pong balls"
+      },
+      {
+        "id": 35773,
+        "label": "pass the ball"
+      }
+    ],
+    "status": "saved"
+  },
+  "slide": {
+    "en": "slide",
+    "chosen": 4759,
+    "alternatives": [
+      {
+        "id": 7016,
+        "label": "slide, glide"
+      },
+      {
+        "id": 36880,
+        "label": "go down the slide, slide down"
+      },
+      {
+        "id": 34687,
+        "label": "evacuation slide, evacuation slides"
+      }
+    ],
+    "status": "saved"
+  }
+}
