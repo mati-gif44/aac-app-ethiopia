@@ -142,9 +142,9 @@ class PageTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
       child: SizedBox(
-        height: 60,
+        height: 64,
         child: Row(
           children: [
             for (var i = 0; i < pages.length; i++) ...[
@@ -172,16 +172,27 @@ class PageTabs extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(_icons[pages[i].id] ?? Icons.grid_view, color: fg, size: 24),
+            Flexible(
+              flex: 3,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Icon(_icons[pages[i].id] ?? Icons.grid_view,
+                    color: fg, size: 24),
+              ),
+            ),
             const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                pages[i].label(isAmharic),
-                style: TextStyle(
-                  color: fg,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+            Flexible(
+              flex: 2,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  pages[i].label(isAmharic),
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

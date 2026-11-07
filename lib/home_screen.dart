@@ -45,6 +45,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     setState(() => _vocab = vocab);
     _audio.preload(vocab.words);
+    _pruneHistory();
+  }
+
+  void _pruneHistory() {
+    final vocab = _vocab;
+    if (vocab == null || _history.isEmpty) return;
+    final pruned = _history
+        .map((s) => s.where((id) => vocab.byId(id) != null).toList())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final changed = pruned.length != _history.length ||
+        pruned.expand((s) => s).length != _history.expand((s) => s).length;
+    if (!changed) return;
+    setState(() => _history = pruned);
+    _saveHistory();
   }
 
   Future<void> _loadAndApplySettings() async {
@@ -62,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
             .where((e) => e.isNotEmpty)
             .toList();
       });
+      _pruneHistory();
     }
   }
 
@@ -407,7 +423,11 @@ class _HomeScreenState extends State<HomeScreen> {
           itemCount: count,
           itemBuilder: (context, index) {
             final word = vocab.wordAt(pageId, index);
-            if (word == null) return const EmptySlot();
+            if (word == null) {
+              return _pageIndex == 0
+                  ? const EmptySlot()
+                  : const SizedBox.shrink();
+            }
             final enabled = word.level <= _level;
             return AACButton(
               key: ValueKey(word.id),

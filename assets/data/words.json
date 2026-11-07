@@ -55,11 +55,10 @@
     { "id": "jacket", "en": "jacket", "am": "ጃኬት", "category": "clothes", "color": "orange", "image": "assets/images/jacket.png", "audio": "assets/audio/am/jacket.mp3", "page": "clothes", "position": 4 },
     { "id": "hat", "en": "hat", "am": "ኮፍያ", "category": "clothes", "color": "orange", "image": "assets/images/hat.png", "audio": "assets/audio/am/hat.mp3", "page": "clothes", "position": 5 },
     { "id": "dress", "en": "dress", "am": "ቀሚስ", "category": "clothes", "color": "orange", "image": "assets/images/dress.png", "audio": "assets/audio/am/dress.mp3", "page": "clothes", "position": 6 },
-    { "id": "underwear", "en": "underwear", "am": "የውስጥ ሱሪ", "category": "clothes", "color": "orange", "image": "assets/images/underwear.png", "audio": "assets/audio/am/underwear.mp3", "page": "clothes", "position": 7 },
+    { "id": "underwear", "en": "underwear", "am": "ፓንት", "category": "clothes", "color": "orange", "image": "assets/images/underwear.png", "audio": "assets/audio/am/underwear.mp3", "page": "clothes", "position": 7 },
 
     { "id": "injera", "en": "injera", "am": "እንጀራ", "category": "food", "color": "orange", "image": "assets/images/injera.png", "audio": "assets/audio/am/injera.mp3", "page": "food", "position": 0 },
     { "id": "shiro", "en": "shiro", "am": "ሽሮ", "category": "food", "color": "orange", "image": "assets/images/shiro.png", "audio": "assets/audio/am/shiro.mp3", "page": "food", "position": 1 },
-    { "id": "beef_stew", "en": "beef stew", "am": "ሥጋ ወጥ", "category": "food", "color": "orange", "image": "assets/images/beef_stew.png", "audio": "assets/audio/am/beef_stew.mp3", "page": "food", "position": 2 },
     { "id": "rice", "en": "rice", "am": "ሩዝ", "category": "food", "color": "orange", "image": "assets/images/rice.png", "audio": "assets/audio/am/rice.mp3", "page": "food", "position": 3 },
     { "id": "bread", "en": "bread", "am": "ዳቦ", "category": "food", "color": "orange", "image": "assets/images/bread.png", "audio": "assets/audio/am/bread.mp3", "page": "food", "position": 4 },
     { "id": "fish", "en": "fish", "am": "አሳ", "category": "food", "color": "orange", "image": "assets/images/fish.png", "audio": "assets/audio/am/fish.mp3", "page": "food", "position": 5 },

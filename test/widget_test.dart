@@ -75,11 +75,16 @@ void main() {
       expect(w.position, inInclusiveRange(0, 23));
       if (w.page != 'core') expect(w.level, 0);
     }
-    expect(vocab.words.length, 24 + 43);
+    expect(vocab.words.length, 24 + 42);
+    expect(vocab.byId('beef_stew'), isNull);
+    expect(vocab.wordAt('food', 2), isNull);
   });
 
   test('labels fall back to English when Amharic is missing', () {
-    final w = vocab.byId('beef_stew')!;
+    final w = Vocabulary.parse(
+      '{"pages":[],"words":[{"id":"x","en":"beef stew","category":"food","color":"orange","image":"i","audio":"a","page":"food","position":0}]}',
+      {},
+    ).byId('x')!;
     expect(w.label(true), 'beef stew');
     expect(vocab.byId('want')!.label(true), 'ፈልጋለሁ');
   });
